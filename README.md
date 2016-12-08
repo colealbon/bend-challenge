@@ -17,9 +17,9 @@ navigate to localhost:3000 (or port settings from config/options.js)
 # task list   
 * <s>Package.json identifying package dependencies from npm.</s>
 * <s>install Express.js</s>
-* <s>install Mocha</s>* install Mongoose* install Mockgoose
-* POST /order
-* GET /orders
-* install fake json server https://github.com/typicode/json-server
+* <s>install Mocha</s>* <s>install Mongoose</s>* <s>install Mockgoose</s>
+* <s>POST /order</s>
+* <s>install fake json server https://github.com/typicode/json-server</s>
 * ACME Autos:
 * Rainer
+* GET /orders
