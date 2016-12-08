@@ -6,7 +6,7 @@
   "scripts": {
     "jsonserverup": "json-server db.json",
     "start": "babel-node --presets es2015 app.js",
-    "nodemon": "node_modules/nodemon/bin/nodemon.js --exec 'npm run test; npm run start' --delay 1 --watch",
+    "livereload": "node_modules/nodemon/bin/nodemon.js --exec 'npm run test; npm run start' --delay 1 --watch",
     "test": "clear; node_modules/mocha/bin/mocha --ui=tdd --inline-diffs --colors --bail --compilers js:babel-register --require babel-polyfill test"
   },
   "repository": {
