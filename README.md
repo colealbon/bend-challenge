@@ -20,8 +20,10 @@ navigate to localhost:3000 (or port settings from config/options.js)
 * <s>install Mocha</s>* <s>install Mongoose</s>* <s>install Mockgoose</s>
 * <s>POST /order validate order parameters</s>
 * <s>install fake json server https://github.com/typicode/json-server</s>
-* ACME Autos submit order
-* Rainer submit order
+* <s>ACME Autos submit order</s>
+* <s>Rainer submit order</s>
 * persist completed order to mongo
 * GET /orders orders report from mongo
 * install JWT middleware (or document as approach to prevent external users)
+* split routes/order.js functions into library for more granular unit testing.
+* placeOrderXXX functions should't try to validate <b>and</b> submit.  refactor to separate functs.
