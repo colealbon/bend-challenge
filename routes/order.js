@@ -14,6 +14,7 @@ const logger = new(winston.Logger)({
 });
 
 function validateParams (order) {
+    logger.silly(`validateteParams: <-- ${JSON.stringify(order)}`);
     let orderObj = order;
     try {
         orderObj.status = 'fail'
@@ -56,15 +57,16 @@ function validateParams (order) {
 }
 
 async function placeOrderACME (order) {
+    logger.debug(`placeOrderACME: <-- ${JSON.stringify(order)}`);
     let orderObj = objectAssign(order);
     // IF it's not an ACME car, then bail
     if (['anvil','wile','roadrunner'].indexOf(orderObj.model) === -1) {
-        logger.silly('not ACME')
+        logger.debug('not ACME')
         return orderObj;
     }
     orderObj.status = 'fail'
     try {
-        logger.silly('it is ACME:')
+        logger.debug('it is ACME:')
         let orderPlaced = await JSON.parse('{"order": "1000"}');
         orderObj.orderId = orderPlaced.order
         orderObj.status = 'success';
@@ -125,17 +127,18 @@ async function placeOrderACME (order) {
 }
 
 async function placeOrderRANIER (order) {
+    logger.debug(`placeOrderRANIER: <-- ${JSON.stringify(order)}`);
     let orderObj = objectAssign(order);
     if (['pugetsound','olympic'].indexOf(orderObj.model) === -1)
-        logger.silly("model not ranier")
-        return
+        logger.debug("model not ranier")
+        return orderObj
     orderObj.status = 'fail'
     try {
-        logger.silly("model is ranier");
+        logger.debug("model is ranier");
         let orderPlaced = await JSON.parse('{"order_id": “206”}');
         orderObj.orderId = orderPlaced.order_id
         orderObj.status = 'success';
-        logger.silly('ranier order placed');
+        logger.debug('ranier order placed');
         return orderObj;
     }
     catch (err) {
@@ -183,15 +186,16 @@ router.post('/', jsonParser, async (req, res, next) => {
     }
     // SUBMIT ORDER TO SUPPLIERS
     let placedOrder = await JSON.parse('{"status":"fail"}')
-    placedOrder = await placeOrderACME(validatedOrder) || placedOrder
-    placedOrder = await placeOrderRANIER(validatedOrder) || placedOrder
+    placedOrder = await placeOrderACME(validatedOrder)
+    placedOrder = await placeOrderRANIER(validatedOrder)
+    logger.debug(`place order completed ${JSON.stringify(placedOrder)}`)
     if (placedOrder.status === 'fail') {
-        logger.silly('order fail unknown car make/model')
+        logger.debug(`order fail reason: ${placedOrder.reason}`)
         res.status(400).send(placedOrder.reason || 'unknown car make/model');
         return
     }
     // LOG ORDER TO MONGO
-
+    logger.debug(`order placed submitting to mongodb --> ${JSON.stringify(placedOrder)}`)
     res.status(200).send(placedOrder);
     return
 })
