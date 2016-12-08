@@ -1,0 +1,71 @@
+Welcome to your first day as a Software Engineer with Central Cascade Automotive Sales!
+    Our project manager has come to us with a brand new product an exciting online ordering  system for custom vehicle orders.
+     Since we have a lot of customers who like to choose  options we don't necessarily have in stock, we have decided to build an interface through  which the customers can place their orders.  This user client will require a backend service to  communicate with.  The purpose of this service will be to take an order and send it off to the  appropriate supplier for delivery.    Technical Requirements:
+ Node.js
+  Package.json identifying package dependencies from npm.
+  Packages to use:
+  Express.js
+  Mongoose  to facilitate MongoDB communication and act as ORM  layer
+  Mockgoose  to remove requirement for having an actual db installed
+  Mocha  to run any tests you provide
+
+  Utility packages we use on our projects that might be useful:
+  Lodash
+  Q
+  Grunt or Gulp
+  Superagent
+  Requests to Provide:
+
+ POST /order
+ The main entry point into the service will be a POST request to the endpoint
+ /order.   This endpoint should receive the following parameters:
+  make  This will correlate to the supplier
+  model  The model of vehicle that the customer would like to purchase
+  package  Different trim packages for different vehicles.
+  This can be a  simple string representation of the package.
+    customer_id  Customer placing the order
+       Response should be an indication of success.
+       Extra credit: Set customers in some sort of data structure and when we receive
+       the customer id here, validate it and ensure that they have a shippable  address.
+       (We don't ship to Siberia, the fees are exorbitant.)
+  GET /orders
+
+ As orders are placed, we like to keep track of them and be able to provide a
+ report via this endpoint for consumption by our customer service  representatives.
+ Response as JSON.
+  Extra Credit:  Since this endpoint is for internal use, it would be nice if we didn't
+publicly expose it.
+How can we lock this down and protect our business  reports?
+    Placing Orders with Suppliers:
+          When an order comes in, we need to make a request to the suppliers.
+        Each of these  suppliers has an API that accepts an order.
+          Please hook up to the API endpoints for  these suppliers and make requests appropriately:
+             Supplier APIs:
+             ACME Autos:   API URL: http://localhost:3050/acme/api/v45.1
+                 Order Request:   Endpoint: POST /order   Content Type: xwwwformurlencoded
+                 Parameters:   api_key="cascade.53bce4f1dfa0fe8e7ca126f91b3 5d3a6"
+                  model=[anvil,wile,roadrunner]   package=[std,super,elite]
+                 Response (as JSON)   Sample: {order: "1000"}
+                 For implementation, can generate a random  number for the order.
+
+             Rainer   API URL: http://localhost:3051/r
+             Token Request:   You have to get a onetime token from this supplier for  submitting an order.
+                GET /nonce_token   Parameters:   storefront="ccasbb9630c04f"
+                Response Sample:   {nonce_token: "ff6bfd673ab6ae03d8911"}
+                For implementation, you can just fake a  token response.
+
+             Order Request   Endpoint: POST /request_customized_model
+                  Parameters
+                  token="ff6bfd673ab6ae03d8911"
+                  model=[pugetsound,olympic]
+                  custom=[mtn,ltd,14k]
+                  Response (as JSON)   Sample: {order_id: "206"}
+                   For implementation, can generate a random
+                   
+                number for the order_id.
+                Please store the customer placing the order in the database along with the
+                correlating order identifiers (supplier and id).
+                 Extra Credit:  Provide mock servers for these two APIs for proving code via
+                tests.
+
+

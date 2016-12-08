@@ -1,0 +1,16 @@
+{ "id": 1, "title": "json-server", "author": "typicode" }
+{
+    "api_key":"cascade.53bce4f1dfa0fe8e7ca126f91b3 5d3a6"
+    "model": {
+        "anvil"
+        ,"wile"
+        ,"roadrunner"
+    }
+}
+
+ACME Autos:   API URL: http://localhost:3050/acme/api/v45.1
+    Order Request:   Endpoint: POST /order   Content Type: xwwwformurlencoded
+    Parameters:   api_key="cascade.53bce4f1dfa0fe8e7ca126f91b3 5d3a6"
+     model=[anvil,wile,roadrunner]   package=[std,super,elite]
+    Response (as JSON)   Sample: {order: "1000"}
+    For implementation, can generate a random  number for the order.
