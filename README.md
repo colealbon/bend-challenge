@@ -17,11 +17,12 @@ navigate to localhost:3000 (or port settings from config/options.js)
 # task list   
 * <s>Package.json identifying package dependencies from npm.</s>
 * <s>install Express.js</s>
-* <s>install Mocha</s>* <s>install Mongoose</s>* <s>install Mockgoose</s>
-* <s>POST /order validate order parameters</s>
+* <s>install Mocha</s>* <s>POST /order validate order parameters</s>
 * <s>install fake json server https://github.com/typicode/json-server</s>
 * <s>ACME Autos submit order</s>
 * <s>Rainer submit order</s>
+* install Mongoose
+* install Mockgoose
 * persist completed order to mongo
 * GET /orders orders report from mongo
 * install JWT middleware (or document as approach to prevent external users)
