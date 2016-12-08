@@ -7,6 +7,11 @@ const winston = require('winston');
 const fetch = require('node-fetch');
 const cheerio = require('cheerio');
 
+var Mongoose = require('mongoose').Mongoose;
+var mongoose = new Mongoose();
+
+var mockgoose = require('mockgoose');
+
 var jsonParser = bodyParser.json()
 
 const logger = new(winston.Logger)({
@@ -53,6 +58,7 @@ function validateParams (order) {
         }
         logger.silly('validation passed');
         orderObj.status = 'success';
+        orderObj.reason = '';
         return orderObj;
     } catch (err) {
         next(err);
@@ -100,7 +106,9 @@ async function placeOrderACME (order) {
             .replace(/\\/g, '')
             .replace(/ /g, ''))
         orderObj.status = 'success';
+        orderObj.reason = '';
         return orderObj;
+
     }
     catch (err) {
         logger.error(err);
@@ -149,6 +157,7 @@ async function placeOrderRANIER (order) {
             .replace(/\\/g, '')
             .replace(/ /g, ''))
         orderObj.status = 'success';
+        orderObj.reason = '';
 
         logger.debug(`RANIER: --> ${JSON.stringify(orderObj)}`);
         return orderObj;
@@ -161,6 +170,27 @@ async function placeOrderRANIER (order) {
     return orderObj
 }
 
+async function persistToMongo(order) {
+    try {
+        logger.debug(`persistToMongo: <-- ${JSON.stringify(order)}`);
+        let orderObj = objectAssign(order);
+        mockgoose(mongoose).then(function() {
+        mongoose.connect('mongodb://127.0.0.1/orders', function(err, db) {
+            if (!db) {
+                return
+            }
+            db.collection('orders').insertOne(orderObj);
+            db.collection('orders').map(function(singleorder) {
+                console.log('***', JSON.stringify(singleorder));
+                })
+            });
+        });
+    }
+    catch (err) {
+        logger.error('looks like mongo down', err)
+    }
+}
+
 router.get('/', async (req, res, next) => {
   try {
     res.send('ORDERS');
@@ -171,6 +201,7 @@ router.get('/', async (req, res, next) => {
 
 // THE ENTRY POINT FOR "ORDER"
 router.post('/', jsonParser, async (req, res, next) => {
+    // DON'T START NOTHING, AIN'T GONNA BE NOTHING
     if (!req.body) return res.sendStatus(400)
 
     // CHECK IF PARAMETERS ARE GOOD
@@ -184,7 +215,6 @@ router.post('/', jsonParser, async (req, res, next) => {
     placedOrder.status = 'fail'; // this will be success if we find a car.
     placedOrder = await placeOrderRANIER(validatedOrder)
     placedOrder = await placeOrderACME(validatedOrder)
-    // ^^^ bad: Ranier funct depends on ACME funct returning an unmolested obj
     logger.silly(`place order completed ${JSON.stringify(placedOrder)}`)
     if (placedOrder.status === 'fail') {
         logger.silly(`order fail reason: ${placedOrder.reason}`)
@@ -194,6 +224,7 @@ router.post('/', jsonParser, async (req, res, next) => {
     // LOG ORDER TO MONGO
     logger.debug(`order placed submitting to mongodb --> ${JSON.stringify(placedOrder)}`)
     res.status(200).send(placedOrder);
+    let logSuccess = await persistToMongo(placedOrder);
     return
 })
 
