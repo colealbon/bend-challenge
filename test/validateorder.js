@@ -14,9 +14,9 @@ suite('validate order', function() {
             },
             method: "POST",
             body: `{
-            	"make": "Ford",
-            	"model": "mustang II",
-            	"package": "Ghia - yellow with white leather interior",
+            	"make": "ACME Autos",
+            	"model": "roadrunner",
+            	"package": "elite",
             	"customer": {
                     "id": "1976",
                     "shipto": "nebraska"
@@ -41,8 +41,8 @@ suite('validate order', function() {
             },
             method: "POST",
             body: `{
-            	"model": "mustang II",
-            	"package": "Ghia - yellow with white leather interior",
+            	"model": "roadrunner",
+            	"package": "elite",
             	"customer": {
                     "id": "1976",
                     "shipto": "nebraska"
@@ -64,8 +64,8 @@ suite('validate order', function() {
             },
             method: "POST",
             body: `{
-            	"make": "Ford",
-            	"package": "Ghia - yellow with white leather interior",
+            	"make": "ACME Autos",
+            	"package": "elite",
             	"customer": {
                     "id": "1976",
                     "shipto": "nebraska"
@@ -87,8 +87,8 @@ suite('validate order', function() {
             },
             method: "POST",
             body: `{
-            	"make": "Ford",
-            	"model": "mustang II",
+            	"make": "ACME Autos",
+            	"model": "roadrunner",
             	"customer": {
                     "id": "1976",
                     "shipto": "nebraska"
@@ -110,9 +110,9 @@ suite('validate order', function() {
             },
             method: "POST",
             body: `{
-            	"make": "Ford",
-            	"model": "mustang II",
-            	"package": "Ghia - yellow with white leather interior"
+            	"make": "ACME Autos",
+            	"model": "roadrunner",
+            	"package": "elite"
             }`
             })
         .then(function(res) {
@@ -131,9 +131,9 @@ suite('validate order', function() {
             },
             method: "POST",
             body: `{
-            	"make": "Ford",
-            	"model": "mustang II",
-            	"package": "Ghia - yellow with white leather interior",
+            	"make": "ACME Autos",
+            	"model": "roadrunner",
+            	"package": "elite",
             	"customer": {
                     "id": "1976",
                     "shipto": "siberia"

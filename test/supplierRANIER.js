@@ -7,7 +7,7 @@ const cheerio = require('cheerio');
 
 let jsonServer = require('json-server')
 let server = jsonServer.create()
-let router = jsonServer.router('apiacmeauto.json')
+let router = jsonServer.router('test/apiranier.json')
 let middlewares = jsonServer.defaults()
 
 server.use(middlewares)
@@ -18,30 +18,5 @@ server.listen(3050, function () {
 
 suite('place supplier orders RANIER', function() {
     test('check post response ok', function() {
-        // return fetch('http://127.0.0.1:3000/order', {
-        //     headers: {
-        //         'Accept': 'application/json',
-        //         'Content-Type': 'application/json'
-        //     },
-        //     method: "POST",
-        //     body: `{
-        //     	"make": "Ford",
-        //     	"model": "mustang II",
-        //     	"package": "Ghia - yellow with white leather interior",
-        //     	"customer": {
-        //             "id": "1976",
-        //             "shipto": "nebraska"
-        //         }}`
-        //     })
-        // .then(function(res) {
-        //     assert.equal(res.ok, true);
-        //     return res.text()
-        // })
-        // .then(function(body) {
-        //     const cheers = cheerio.load(body)
-        //     const cheersObj = JSON.parse(cheers.text())
-        //     assert.equal(cheersObj.status, 'success');
-        //
-        // })
     });
 })
