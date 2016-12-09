@@ -21,7 +21,7 @@ server.use(function (req, res, next) {
     req.body.createdAt = Date.now()
   }
   // Continue to JSON Server router
-  next()
+  next();
 })
 
 router.render = function (req, res) {
@@ -29,30 +29,25 @@ router.render = function (req, res) {
    body: `{"order": "${Math.floor(Math.random() * 999999)}"}`
   })
 }
-server.use(router)
+server.use(router);
+
+
+var Mongoose = require('mongoose').Mongoose;
+var mongoose = new Mongoose();
+
+var mockgoose = require('mockgoose');
+
+before(function(done) {
+    mockgoose(mongoose).then(function() {
+        mongoose.connect('mongodb://127.0.0.1/TestingDB', function(err) {
+            done(err);
+        });
+    });
+});
 
 server.listen(3050, function () {
   console.log('RANIER JSON Server is running on 3050')
-})
-
-//3050
-// ● API URL: http://localhost:3051/r ● Token Request:
-// ○ You have to get a one­time token from this supplier for submitting an order.
-// ■ GET /nonce_token
-// ■ Parameters:
-// ● storefront=”ccas­bb9630c04f”
-// ■ Response Sample:
-// ● {nonce_token: “ff6bfd673ab6ae03d8911”}
-// ● For implementation, you can just fake a
-// token response.
-// ● Order Request
-// ○ Endpoint: POST /request_customized_model ○ Parameters
-//
-//     ■ token=”ff6bfd673ab6ae03d8911” ■ model=[pugetsound,olympic]
-// ■ custom=[mtn,ltd,14k]
-// ○ Response (as JSON)
-// ■ Sample: {order_id: “206”}
-// ■ For implementation, can generate a random number for the order_id.
+});
 
 suite('place supplier orders RANIER', function() {
     test('check post response ok', function() {
@@ -104,6 +99,7 @@ suite('place supplier orders RANIER', function() {
             assert.notEqual(res.ok, true);
             return res.text()
         })
+        
     });
     test('should error if bad package', function() {
         return fetch('http://127.0.0.1:3000/order', {

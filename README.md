@@ -12,7 +12,7 @@ npm start; ( or npm run livereload for development)
 ```
 
 # usage   
-navigate to localhost:3000 (or port settings from config/options.js)
+this is an api.  See javascript files in the test folder for example fetch operations.
 
 # task list   
 * <s>Package.json identifying package dependencies from npm.</s>
@@ -21,9 +21,9 @@ navigate to localhost:3000 (or port settings from config/options.js)
 * <s>install fake json server https://github.com/typicode/json-server</s>
 * <s>ACME Autos submit order</s>
 * <s>Rainer submit order</s>
-* install Mongoose
-* install Mockgoose
-* persist completed order to mongo
+* <s>install Mongoose</s>
+* <s>install Mockgoose</s>
+* <s>persist completed order to mongo</s>
 * GET /orders orders report from mongo
 * install JWT middleware (or document as approach to prevent external users)
 * split routes/order.js functions into library for more granular unit testing.

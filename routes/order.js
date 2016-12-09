@@ -6,7 +6,6 @@ const config = require(__dirname + '/../config/options.js');
 const winston = require('winston');
 const fetch = require('node-fetch');
 const cheerio = require('cheerio');
-
 var Mongoose = require('mongoose').Mongoose;
 var mongoose = new Mongoose();
 
@@ -68,6 +67,10 @@ function validateParams (order) {
 async function placeOrderACME (order) {
     logger.silly(`placeOrderACME: <-- ${JSON.stringify(order)}`);
     let orderObj = objectAssign(order);
+    if (orderObj.orderid) {
+        // we already processed it, bail
+        return orderObj;
+    }
     // IF it's not an ACME car model, then bail
     if (['anvil','wile','roadrunner'].indexOf(orderObj.model) === -1) {
         logger.silly('not ACME car model')
@@ -96,17 +99,17 @@ async function placeOrderACME (order) {
         })
         .then(function(body) {
             const cheers = cheerio.load(body)
-            logger.debug(`response from ACME placeOrder page ${cheers.text()}`)
+            logger.silly(`response from ACME placeOrder page ${cheers.text()}`)
             return cheers.text();
         })
         // bad practice: replacing here instead of properly dealing with json
         orderObj.orderid = parseInt(JSON.parse(orderPlaced).body.split(":")[1]
-            .replace(/}/g, '')
+            .replace(/\}/g, '')
             .replace(/\"/g, '')
             .replace(/\\/g, '')
             .replace(/ /g, ''))
         orderObj.status = 'success';
-        orderObj.reason = '';
+        orderObj.reason = ' ';
         return orderObj;
 
     }
@@ -119,10 +122,14 @@ async function placeOrderACME (order) {
 }
 
 async function placeOrderRANIER (order) {
-    logger.debug(`placeOrderRANIER: <-- ${JSON.stringify(order)}`);
+    logger.silly(`placeOrderRANIER: <-- ${JSON.stringify(order)}`);
     let orderObj = objectAssign(order);
+    if (orderObj.orderid) {
+        //we already processed it.
+        return orderObj;
+    }
     if (['pugetsound','olympic'].indexOf(orderObj.model) === -1){
-        logger.debug("model not ranier")
+        logger.silly("model not ranier")
         orderObj.status = 'fail';
         return orderObj
     }
@@ -133,7 +140,7 @@ async function placeOrderRANIER (order) {
         return orderObj;
     }
     try {
-        logger.debug('it is RANIER:')
+        logger.silly('it is RANIER:')
         let orderPlaced = await fetch(`http://${config.supplier_ranier_url}:${config.supplier_ranier_port}`, {
             headers: {
                 'Accept': 'application/json',
@@ -147,42 +154,39 @@ async function placeOrderRANIER (order) {
         })
         .then(function(body) {
             const cheers = cheerio.load(body)
-            logger.debug(`response from RANIER placeOrder page ${cheers.text()}`)
-            return cheers;
+            logger.silly(`response from RANIER placeOrder page ${cheers.text()}`)
+            return cheers.text();
         });
         // bad practice: replacing here instead of properly dealing with json
+        logger.silly(orderPlaced)
         orderObj.orderid = parseInt(JSON.parse(orderPlaced).body.split(":")[1]
-            .replace(/}/g, '')
+            .replace(/\}/g, '')
             .replace(/\"/g, '')
             .replace(/\\/g, '')
-            .replace(/ /g, ''))
+            .replace(/ /g, ''));
         orderObj.status = 'success';
         orderObj.reason = '';
 
-        logger.debug(`RANIER: --> ${JSON.stringify(orderObj)}`);
+        logger.silly(`RANIER: --> ${JSON.stringify(orderObj)}`);
         return orderObj;
     }
     catch (err) {
         logger.error(err);
-        orderObj.reason = 'failed to place RANIER order'
         return orderObj;
     }
     return orderObj
 }
-
 async function persistToMongo(order) {
     try {
-        logger.debug(`persistToMongo: <-- ${JSON.stringify(order)}`);
+        logger.silly(`persistToMongo: <-- ${JSON.stringify(order)}`);
         let orderObj = objectAssign(order);
         mockgoose(mongoose).then(function() {
         mongoose.connect('mongodb://127.0.0.1/orders', function(err, db) {
             if (!db) {
                 return
             }
+            mongoosedb = this.db;
             db.collection('orders').insertOne(orderObj);
-            db.collection('orders').map(function(singleorder) {
-                console.log('***', JSON.stringify(singleorder));
-                })
             });
         });
     }
@@ -190,14 +194,6 @@ async function persistToMongo(order) {
         logger.error('looks like mongo down', err)
     }
 }
-
-router.get('/', async (req, res, next) => {
-  try {
-    res.send('ORDERS');
-  } catch (err) {
-    next(err);
-  }
-});
 
 // THE ENTRY POINT FOR "ORDER"
 router.post('/', jsonParser, async (req, res, next) => {
@@ -213,8 +209,8 @@ router.post('/', jsonParser, async (req, res, next) => {
     // SUBMIT ORDER TO SUPPLIERS
     let placedOrder = await JSON.parse('{"status":"fail"}')
     placedOrder.status = 'fail'; // this will be success if we find a car.
-    placedOrder = await placeOrderRANIER(validatedOrder)
     placedOrder = await placeOrderACME(validatedOrder)
+    placedOrder = await placeOrderRANIER(validatedOrder)
     logger.silly(`place order completed ${JSON.stringify(placedOrder)}`)
     if (placedOrder.status === 'fail') {
         logger.silly(`order fail reason: ${placedOrder.reason}`)
@@ -222,7 +218,7 @@ router.post('/', jsonParser, async (req, res, next) => {
         return
     }
     // LOG ORDER TO MONGO
-    logger.debug(`order placed submitting to mongodb --> ${JSON.stringify(placedOrder)}`)
+    logger.silly(`order placed submitting to mongodb --> ${JSON.stringify(placedOrder)}`)
     res.status(200).send(placedOrder);
     let logSuccess = await persistToMongo(placedOrder);
     return

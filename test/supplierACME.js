@@ -20,7 +20,6 @@ server.use(function (req, res, next) {
   if (req.method === 'POST') {
     req.body.createdAt = Date.now()
   }
-  // Continue to JSON Server router
   next()
 })
 
@@ -30,6 +29,19 @@ router.render = function (req, res) {
   })
 }
 server.use(router)
+
+var Mongoose = require('mongoose').Mongoose;
+var mongoose = new Mongoose();
+
+var mockgoose = require('mockgoose');
+
+before(function(done) {
+    mockgoose(mongoose).then(function() {
+        mongoose.connect('mongodb://127.0.0.1/TestingDB', function(err) {
+            done(err);
+        });
+    });
+});
 
 server.listen(3051, function () {
   console.log('ACME JSON Server is running on 3051')
@@ -64,7 +76,6 @@ suite('place supplier orders ACME', function() {
         })
     });
     test('should error if bad model', function() {
-        // model=[anvil,wile,roadrunner]
         return fetch('http://127.0.0.1:3000/order', {
             headers: {
                 'Accept': 'application/json',
@@ -86,7 +97,6 @@ suite('place supplier orders ACME', function() {
         })
     });
     test('should error if bad package', function() {
-        // validate package=[std,super,elite]
         return fetch('http://127.0.0.1:3000/order', {
             headers: {
                 'Accept': 'application/json',
@@ -111,4 +121,21 @@ suite('place supplier orders ACME', function() {
             assert.equal(cheers.text(), 'not a known ACME package');
         })
     });
+    // test('report orders (GET)', function() {
+    //     return fetch('http://127.0.0.1:3000/order', {
+    //         headers: {
+    //              'Accept': 'application/json',
+    //              'Content-Type': 'application/json'
+    //         },
+    //         method: "GET"
+    //     })
+    //     .then(function(res) {
+    //         assert.notEqual(res.ok, true);
+    //         return res.text()
+    //     })
+    //     .then(function(body) {
+    //         const cheers = cheerio.load(body)
+    //         assert.equal(cheers.text(), 'not a known ACME package');
+    //     })
+    // });
 })
