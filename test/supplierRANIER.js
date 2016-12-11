@@ -4,6 +4,7 @@ process.env.NODE_ENV = 'test';
 const fetch = require('node-fetch');
 const assert = require('chai').assert;
 const cheerio = require('cheerio');
+const config = require(__dirname + '/../config/options.js');
 
 let webserver = require('../app.js');
 const http = require('http');
@@ -11,7 +12,7 @@ if (!webserver) webserver = http.createServer();
 
 let jsonServer = require('json-server')
 let server = jsonServer.create()
-let router = jsonServer.router('test/apiranier.json')
+let router = jsonServer.router()
 let middlewares = jsonServer.defaults()
 
 server.use(middlewares)
@@ -20,8 +21,7 @@ server.use(function (req, res, next) {
   if (req.method === 'POST') {
     req.body.createdAt = Date.now()
   }
-  // Continue to JSON Server router
-  next();
+  next()
 })
 
 router.render = function (req, res) {
@@ -29,20 +29,22 @@ router.render = function (req, res) {
    body: `{"order": "${Math.floor(Math.random() * 999999)}"}`
   })
 }
-server.use(router);
-
+server.use(router)
 
 var Mongoose = require('mongoose').Mongoose;
 var mongoose = new Mongoose();
-
 var mockgoose = require('mockgoose');
 
 before(function(done) {
     mockgoose(mongoose).then(function() {
-        mongoose.connect('mongodb://127.0.0.1/TestingDB', function(err) {
+        mongoose.connect(config.mongoose_url, function(err) {
             done(err);
         });
     });
+});
+
+after(function() {
+    delete require.cache[require.resolve('mongoose')];
 });
 
 server.listen(3050, function () {
@@ -72,7 +74,6 @@ suite('place supplier orders RANIER', function() {
         })
         .then(function(body) {
             const cheers = cheerio.load(body)
-            console.log('****',cheers.text());
             const cheersObj = JSON.parse(cheers.text())
             assert.equal(cheersObj.status, 'success');
 
@@ -99,7 +100,7 @@ suite('place supplier orders RANIER', function() {
             assert.notEqual(res.ok, true);
             return res.text()
         })
-        
+
     });
     test('should error if bad package', function() {
         return fetch('http://127.0.0.1:3000/order', {

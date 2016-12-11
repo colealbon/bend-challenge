@@ -10,7 +10,8 @@ router.get('/', async (req, res, next) => {
         please see the README.md<br>
         or visit scripts in the test folder for guidance<br>
         refunds available upon request<br>
-        </code>`);
+        </code>
+        `);
   } catch (err) {
     next(err);
   }

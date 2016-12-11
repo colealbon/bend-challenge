@@ -6,33 +6,6 @@ const assert = require('chai').assert;
 const cheerio = require('cheerio');
 
 suite('validate order', function() {
-    test('check post response ok', function() {
-        return fetch('http://127.0.0.1:3000/order', {
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            method: "POST",
-            body: `{
-            	"make": "ACME Autos",
-            	"model": "roadrunner",
-            	"package": "elite",
-            	"customer": {
-                    "id": "1976",
-                    "shipto": "nebraska"
-                }}`
-            })
-        .then(function(res) {
-            assert.equal(res.ok, true);
-            return res.text()
-        })
-        .then(function(body) {
-            const cheers = cheerio.load(body)
-            const cheersObj = JSON.parse(cheers.text())
-            assert.equal(cheersObj.status, 'success');
-
-        })
-    });
     test('missing make parameter should cause error', function() {
         return fetch('http://127.0.0.1:3000/order', {
             headers: {

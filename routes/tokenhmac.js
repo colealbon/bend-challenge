@@ -2,7 +2,6 @@
 
 
 
-
 // PASTED FROM cole's sophmoric working example of how to pull data from behind a JWT token
 // https://github.com/colealbon/localbitcoins-analytics/blob/master/lbc-transaction-reports.js
 // IT IS PROBABLY  NOT FUNCTIONAL HERE BECAUSE IT USES GENERATORS (NOT ASYNC/AWAIT)

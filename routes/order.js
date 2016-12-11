@@ -1,4 +1,5 @@
 import { Router } from 'express';
+
 const bodyParser = require('body-parser')
 const objectAssign = require('object-assign');
 const router = new Router();
@@ -6,12 +7,8 @@ const config = require(__dirname + '/../config/options.js');
 const winston = require('winston');
 const fetch = require('node-fetch');
 const cheerio = require('cheerio');
-var Mongoose = require('mongoose').Mongoose;
-var mongoose = new Mongoose();
 
-var mockgoose = require('mockgoose');
-
-var jsonParser = bodyParser.json()
+const jsonParser = bodyParser.json()
 
 const logger = new(winston.Logger)({
     transports: [new(winston.transports.File)({
@@ -19,6 +16,25 @@ const logger = new(winston.Logger)({
     })],
     level: config.winston_log_level
 });
+
+const mongoose = require('mongoose'),
+    Schema = mongoose.Schema;
+mongoose.Promise = global.Promise;
+
+const orderSchema = mongoose.Schema({
+    make: String,
+    model: String,
+    package: String,
+    customer: {
+        id: String,
+        shipto: String
+    },
+    status: String,
+    reason: String,
+    orderid: String
+});
+const OrderModel = mongoose.model('Order', orderSchema);
+
 
 function validateParams (order) {
     logger.silly(`validateteParams: <-- ${JSON.stringify(order)}`);
@@ -176,18 +192,24 @@ async function placeOrderRANIER (order) {
     }
     return orderObj
 }
+
 async function persistToMongo(order) {
     try {
-        logger.silly(`persistToMongo: <-- ${JSON.stringify(order)}`);
-        let orderObj = objectAssign(order);
-        mockgoose(mongoose).then(function() {
-        mongoose.connect('mongodb://127.0.0.1/orders', function(err, db) {
-            if (!db) {
-                return
-            }
-            mongoosedb = this.db;
-            db.collection('orders').insertOne(orderObj);
-            });
+        logger.debug(`persistToMongo: <-- ${JSON.stringify(order)}`);
+        let orderObj = Object.assign(order);
+
+        mongoose.connect(config.mongo_url);
+        let db = mongoose.connection;
+        db.on('error', console.error.bind(console, 'connection error:'));
+        db.once('open', async function() {
+            console.log('Mongoose connected.');
+        });
+
+        var newOrder = new OrderModel( orderObj );
+        newOrder.save(function (err, savedOrder) {
+          if (err) return logger.error(err);
+          db.close()
+          return;
         });
     }
     catch (err) {
@@ -195,7 +217,33 @@ async function persistToMongo(order) {
     }
 }
 
-// THE ENTRY POINT FOR "ORDER"
+async function reportOrders() {
+    try {
+        logger.debug(`reportOrders: <--`);
+        OrderModel.find({}, function (err, orders) {
+            if (err) console.error(err);
+            //logger.debug(orders); // <-- this prints
+            return orders;
+        });
+    }
+    catch (err) {
+        logger.error('looks like mongo down', err)
+    }
+}
+
+// // THE ENTRY POINT FOR "ORDER"
+router.get('/', async (req, res) => {
+    try {
+        let allOrders = await reportOrders()
+        logger.debug(allOrders); // <--this doesn't print
+        res.status(200).send(allOrders);
+    } catch(err) {
+        res.status(500).send(err);
+    }
+
+
+})
+
 router.post('/', jsonParser, async (req, res, next) => {
     // DON'T START NOTHING, AIN'T GONNA BE NOTHING
     if (!req.body) return res.sendStatus(400)
@@ -219,8 +267,8 @@ router.post('/', jsonParser, async (req, res, next) => {
     }
     // LOG ORDER TO MONGO
     logger.silly(`order placed submitting to mongodb --> ${JSON.stringify(placedOrder)}`)
-    res.status(200).send(placedOrder);
     let logSuccess = await persistToMongo(placedOrder);
+    res.status(200).send(placedOrder);
     return
 })
 

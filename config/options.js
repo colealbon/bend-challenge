@@ -9,5 +9,6 @@ module.exports = {
     supplier_acme_url: '127.0.0.1',
     supplier_acme_port: 3051,
     supplier_ranier_url: '127.0.0.1',
-    supplier_ranier_port: 3050
+    supplier_ranier_port: 3050,
+    mongo_url: 'mongodb://127.0.0.1/orders'
 };
