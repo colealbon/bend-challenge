@@ -21,22 +21,11 @@ const mongoose = require('mongoose'),
     Schema = mongoose.Schema;
 mongoose.Promise = global.Promise;
 
-const orderSchema = mongoose.Schema({
-    make: String,
-    model: String,
-    package: String,
-    customer: {
-        id: String,
-        shipto: String
-    },
-    status: String,
-    reason: String,
-    orderid: String
-});
-const OrderModel = mongoose.model('Order', orderSchema);
-
+mongoose.connect(config.mongo_url);
 
 function validateParams (order) {
+    // easier to validate with mongoose, but we eventually might want to use
+    // this code on the client.
     logger.silly(`validateteParams: <-- ${JSON.stringify(order)}`);
     let orderObj = order;
     try {
@@ -118,12 +107,7 @@ async function placeOrderACME (order) {
             logger.silly(`response from ACME placeOrder page ${cheers.text()}`)
             return cheers.text();
         })
-        // bad practice: replacing here instead of properly dealing with json
-        orderObj.orderid = parseInt(JSON.parse(orderPlaced).body.split(":")[1]
-            .replace(/\}/g, '')
-            .replace(/\"/g, '')
-            .replace(/\\/g, '')
-            .replace(/ /g, ''))
+        orderObj.orderid = parseInt(JSON.parse(orderPlaced).order)
         orderObj.status = 'success';
         orderObj.reason = ' ';
         return orderObj;
@@ -173,17 +157,9 @@ async function placeOrderRANIER (order) {
             logger.silly(`response from RANIER placeOrder page ${cheers.text()}`)
             return cheers.text();
         });
-        // bad practice: replacing here instead of properly dealing with json
-        logger.silly(orderPlaced)
-        orderObj.orderid = parseInt(JSON.parse(orderPlaced).body.split(":")[1]
-            .replace(/\}/g, '')
-            .replace(/\"/g, '')
-            .replace(/\\/g, '')
-            .replace(/ /g, ''));
+        orderObj.orderid = parseInt(JSON.parse(orderPlaced).order)
         orderObj.status = 'success';
-        orderObj.reason = '';
-
-        logger.silly(`RANIER: --> ${JSON.stringify(orderObj)}`);
+        orderObj.reason = ' ';
         return orderObj;
     }
     catch (err) {
@@ -198,19 +174,14 @@ async function persistToMongo(order) {
         logger.debug(`persistToMongo: <-- ${JSON.stringify(order)}`);
         let orderObj = Object.assign(order);
 
-        mongoose.connect(config.mongo_url);
         let db = mongoose.connection;
         db.on('error', console.error.bind(console, 'connection error:'));
         db.once('open', async function() {
             console.log('Mongoose connected.');
         });
-
-        var newOrder = new OrderModel( orderObj );
-        newOrder.save(function (err, savedOrder) {
-          if (err) return logger.error(err);
-          db.close()
-          return;
-        });
+        const OrderModel = models.Order;
+        const newOrder = new OrderModel( orderObj );
+        newOrder.save();
     }
     catch (err) {
         logger.error('looks like mongo down', err)
@@ -220,9 +191,8 @@ async function persistToMongo(order) {
 async function reportOrders() {
     try {
         logger.debug(`reportOrders: <--`);
+        const OrderModel = models.Order;
         OrderModel.find({}, function (err, orders) {
-            if (err) console.error(err);
-            //logger.debug(orders); // <-- this prints
             return orders;
         });
     }
@@ -231,17 +201,15 @@ async function reportOrders() {
     }
 }
 
-// // THE ENTRY POINT FOR "ORDER"
-router.get('/', async (req, res) => {
-    try {
-        let allOrders = await reportOrders()
-        logger.debug(allOrders); // <--this doesn't print
-        res.status(200).send(allOrders);
-    } catch(err) {
-        res.status(500).send(err);
-    }
-
-
+// THE ENTRY POINT FOR "ORDER"
+router.get('/', async (req, res, next) => {
+        OrderModel.find({}, function (err, orders) {
+            //if (err) console.error(err);
+            logger.debug(orders); // <-- this prints
+            //return orders;
+            res.send('orders');
+        });
+        return
 })
 
 router.post('/', jsonParser, async (req, res, next) => {

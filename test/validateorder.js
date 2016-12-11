@@ -96,7 +96,7 @@ suite('validate order', function() {
             assert.equal(body, 'missing attribute: customer');
         })
     });
-    test('missing customerid parameter should cause error', function() {
+    test('siberia should cause error', function() {
         return fetch('http://127.0.0.1:3000/order', {
             headers: {
                 'Accept': 'application/json',

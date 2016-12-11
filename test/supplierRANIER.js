@@ -26,7 +26,7 @@ server.use(function (req, res, next) {
 
 router.render = function (req, res) {
   res.json({
-   body: `{"order": "${Math.floor(Math.random() * 999999)}"}`
+   order: Math.floor(Math.random() * 999999)
   })
 }
 server.use(router)

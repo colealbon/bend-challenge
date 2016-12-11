@@ -6,10 +6,12 @@ const assert = require('chai').assert;
 const cheerio = require('cheerio');
 const config = require(__dirname + '/../config/options.js');
 
+// launch server that relays orders to vendors
 let webserver = require('../app.js');
 const http = require('http');
 if (!webserver) webserver = http.createServer();
 
+// launch server that sends fake order confirmations
 let jsonServer = require('json-server')
 let server = jsonServer.create()
 let router = jsonServer.router()
@@ -26,7 +28,7 @@ server.use(function (req, res, next) {
 
 router.render = function (req, res) {
   res.json({
-   body: `{"order": "${Math.floor(Math.random() * 999999)}"}`
+   order: Math.floor(Math.random() * 999999)
   })
 }
 server.use(router)
@@ -51,7 +53,7 @@ server.listen(3051, function () {
   console.log('ACME JSON Server is running on 3051')
 })
 
-suite('place supplier orders ACME', function() {
+suite('legit supplier orders ACME should pass', function() {
     test('check post response ok', function() {
         return fetch('http://127.0.0.1:3000/order', {
             headers: {
@@ -120,24 +122,6 @@ suite('place supplier orders ACME', function() {
             assert.notEqual(res.ok, true);
             return res.text()
         })
-        .then(function(body) {
-            const cheers = cheerio.load(body)
-            assert.equal(cheers.text(), 'not a known ACME package');
-        })
-    });
-    test('report orders (GET)', function() {
-        return fetch('http://127.0.0.1:3000/order', {
-            headers: {
-                 'Accept': 'application/json',
-                 'Content-Type': 'application/json'
-            },
-            method: "GET"
-        })
-        .then(function(res) {
-            assert.equal(res.ok, true);
-            return res.text()
-        })
-        //fixme: this passes empty string better need test
         .then(function(body) {
             const cheers = cheerio.load(body)
             assert.equal(cheers.text(), 'not a known ACME package');

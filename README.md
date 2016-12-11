@@ -24,6 +24,8 @@ this is an api.  See javascript files in the test folder for example fetch opera
 * <s>install Mongoose</s>
 * <s>install Mockgoose</s>
 * <s>persist completed order to mongo</s>
+* <s>refactor: move mongoose schema definition to models folder</s>
+* refactor: move mongoo helper functions to lib folder
 * GET /orders orders report from mongo
 * install JWT middleware (or document as approach to prevent external users)
 * split routes/order.js functions into library for more granular unit testing.
