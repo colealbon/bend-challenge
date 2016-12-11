@@ -12,6 +12,7 @@ app.use(morgan('tiny'))
 
 import indexRoute from './routes/index';
 import orderRoute from './routes/order';
+
 app.use('/', indexRoute);
 app.use('/order', orderRoute);
 

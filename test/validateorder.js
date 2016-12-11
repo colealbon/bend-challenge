@@ -5,7 +5,7 @@ const fetch = require('node-fetch');
 const assert = require('chai').assert;
 const cheerio = require('cheerio');
 
-suite('validate order', function() {
+suite('validate order - webapi', function() {
     test('missing make parameter should cause error', function() {
         return fetch('http://127.0.0.1:3000/order', {
             headers: {

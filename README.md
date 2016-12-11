@@ -30,3 +30,4 @@ this is an api.  See javascript files in the test folder for example fetch opera
 * install JWT middleware (or document as approach to prevent external users)
 * split routes/order.js functions into library for more granular unit testing.
 * placeOrderXXX functions should't try to validate <b>and</b> submit.  refactor to separate functs.
+* don't use relative paths.  use "node root folder function"

@@ -23,51 +23,6 @@ mongoose.Promise = global.Promise;
 
 mongoose.connect(config.mongo_url);
 
-function validateParams (order) {
-    // easier to validate with mongoose, but we eventually might want to use
-    // this code on the client.
-    logger.silly(`validateteParams: <-- ${JSON.stringify(order)}`);
-    let orderObj = order;
-    try {
-        orderObj.status = 'fail'
-        // refactor: could/should guard with lense or class here
-        // except I like to say which missing param
-        if (!orderObj.make) {
-            orderObj.reason = "missing attribute: make"
-            return orderObj
-        }
-        if (!orderObj.model) {
-            orderObj.reason = "missing attribute: model"
-            return orderObj
-        }
-        if (!orderObj.package) {
-            orderObj.reason = "missing attribute: package"
-            return orderObj
-        }
-        if (!orderObj.customer) {
-            orderObj.reason = "missing attribute: customer"
-            return orderObj
-        }
-        if (!orderObj.customer.id) {
-            orderObj.reason = "missing attribute: customer.id"
-            return orderObj
-        }
-        if (!orderObj.customer.shipto) {
-            orderObj.reason = "missing attribute: customer.shipto"
-            return orderObj
-        }
-        if (orderObj.customer.shipto === 'siberia') {
-            orderObj.reason = "negatron, siberia is too expensive"
-            return orderObj
-        }
-        logger.silly('validation passed');
-        orderObj.status = 'success';
-        orderObj.reason = '';
-        return orderObj;
-    } catch (err) {
-        next(err);
-    }
-}
 
 async function placeOrderACME (order) {
     logger.silly(`placeOrderACME: <-- ${JSON.stringify(order)}`);
@@ -217,8 +172,9 @@ router.post('/', jsonParser, async (req, res, next) => {
     if (!req.body) return res.sendStatus(400)
 
     // CHECK IF PARAMETERS ARE GOOD
-    let validatedOrder = await validateParams(req.body);
-    if (validatedOrder.status === 'fail') {
+    const order = require('./lib/order.js')
+    let validatedOrder = await order.validateOrder(req.body);
+    if (validatedOrder.status === 'invalid') {
         res.status(400).send(validatedOrder.reason);
         return
     }
