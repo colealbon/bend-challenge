@@ -15,28 +15,14 @@ const logger = new(winston.Logger)({
     level: config.winston_log_level
 });
 
-async function reportOrders() {
-    try {
-        logger.debug(`reportOrders: <--`);
-        const OrderModel = models.Order;
-        OrderModel.find({}, function (err, orders) {
-            return orders;
-        });
-    }
-    catch (err) {
-        logger.error('looks like mongo down', err)
-    }
-}
+const order = require('../lib/order.js');
 
 // THE ENTRY POINT FOR "ORDER"
-router.get('/', async (req, res, next) => {
-        OrderModel.find({}, function (err, orders) {
-            //if (err) console.error(err);
-            logger.debug(orders); // <-- this prints
-            //return orders;
-            res.send('orders');
-        });
-        return
+router.get('/', async (req, res) => {
+    const orders = await order.listOrders();
+    //console.log(orders);
+    res.status(200).send({"orders": orders});
+    return
 })
 
 router.post('/', jsonParser, async (req, res) => {
@@ -45,7 +31,6 @@ router.post('/', jsonParser, async (req, res) => {
     if (!req.body) return res.sendStatus(400)
 
     // CHECK IF ATTRIBUTES ARE PRESENT
-    const order = require('../lib/order.js');
     let validatedOrder = await order.validateOrder(req.body);
     if (validatedOrder.status === 'invalid') {
         logger.debug(`validate fail reason: ${validatedOrder.reason}`);

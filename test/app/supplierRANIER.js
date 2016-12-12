@@ -128,6 +128,6 @@ suite('place supplier orders RANIER', function() {
         .then(function(body) {
             const cheers = cheerio.load(body)
             assert.equal(cheers.text(), 'not a known RANIER package');
-        })
+        });
     });
-})
+});

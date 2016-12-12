@@ -14,6 +14,7 @@ import indexRoute from './routes/index';
 app.use('/', indexRoute);
 
 import orderRoute from './routes/order';
+app.use('/orders', orderRoute);
 app.use('/order', orderRoute);
 
 app.use((err, req, res, next) => {
@@ -25,7 +26,7 @@ try {
       console.log('listening on port 3000!')
     })
 } catch (err) {
-    console.log(err);
+    console.log('error: ', err);
 }
 
 module.exports = app;

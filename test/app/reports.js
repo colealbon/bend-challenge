@@ -7,19 +7,19 @@ const cheerio = require('cheerio');
 const config = require(__dirname + '/../../config/options.js');
 
 // launch server that relays orders to vendors
-let webserver = require('../../app.js');
+let webserver = require(__dirname + '/../../app.js');
 const http = require('http');
 if (!webserver) webserver = http.createServer();
 
 // launch server that sends fake order confirmations
 let jsonServer = require('json-server')
-let server = jsonServer.create()
+let acmeserver = jsonServer.create()
 let router = jsonServer.router()
 let middlewares = jsonServer.defaults()
 
-server.use(middlewares)
-server.use(jsonServer.bodyParser)
-server.use(function (req, res, next) {
+acmeserver.use(middlewares)
+acmeserver.use(jsonServer.bodyParser)
+acmeserver.use(function (req, res, next) {
   if (req.method === 'POST') {
     req.body.createdAt = Date.now()
   }
@@ -31,58 +31,46 @@ router.render = function (req, res) {
    order: Math.floor(Math.random() * 999999)
   })
 }
-server.use(router)
-
-var Mongoose = require('mongoose').Mongoose;
-var mongoose = new Mongoose();
-var mockgoose = require('mockgoose');
-
-before(function(done) {
-    mockgoose(mongoose).then(function() {
-        mongoose.connect(config.mongoose_url, function(err) {
-            const orderSchema = mongoose.Schema({
-                make: String,
-                model: String,
-                package: String,
-                customer: {
-                    id: String,
-                    shipto: String
-                },
-                status: String,
-                reason: String,
-                orderid: String
-            });
-            const OrderModel = mongoose.model('Order', orderSchema);
-            done(err);
-        });
-    });
-});
+acmeserver.use(router)
 
 after(function() {
     delete require.cache[require.resolve('mongoose')];
 });
 
-server.listen(3051, function () {
-  console.log('ACME JSON Server is running on 3051')
-})
-
-suite('place supplier orders ACME', function() {
-    test('report orders (GET)', function() {
-        return fetch('http://127.0.0.1:3000/order', {
+suite('round trip report', function() {
+    test('input', async function() {
+        const insertData = await fetch('http://127.0.0.1:3000/order', {
             headers: {
-                 'Accept': 'application/json',
-                 'Content-Type': 'application/json'
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
             },
-            method: "GET"
-        })
+            method: "POST",
+            body: `{
+                "make": "ACME Autos",
+                "model": "roadrunner",
+                "package": "elite",
+                "customer": {
+                    "id": "1976",
+                    "shipto": "nebraska"
+                }}`
+            })
         .then(function(res) {
             assert.equal(res.ok, true);
             return res.text()
         })
-        //fixme: this passes empty string better need test
         .then(function(body) {
+            //console.log(body);
             const cheers = cheerio.load(body)
-            assert.notEqual(cheers.text(), '');
+            const cheersObj = JSON.parse(cheers.text())
+            assert.equal(cheersObj.status, 'success');
+            return cheersObj;
+        });
+        //console.log(insertData);
+        const requestData = await fetch('http://127.0.0.1:3000/order', {
+            method: "GET"
+            })
+        .then(function(res) {
+            assert.equal(res.ok, true);
         })
     });
-})
+});
