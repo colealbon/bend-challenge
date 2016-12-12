@@ -18,6 +18,10 @@ ranierserver.use(function (req, res, next) {
   next()
 })
 
+// for mock JWT we need two routes like so:
+// server.use('/users', jsonServer.router('comments.json')) // { "comments": [ ... ] }
+// server.use('/other-route', jsonServer.router('other-db.json'))
+
 router.render = function (req, res) {
   res.json({
    order: Math.floor(Math.random() * 999999)
@@ -33,6 +37,7 @@ try {
 
 
 const supplier = require('../../lib/supplier')
+const order = require('../../lib/order')
 
 suite('RANIER place order', function() {
     test('happy path should succeed' , async function() {
