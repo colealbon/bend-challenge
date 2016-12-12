@@ -17,12 +17,6 @@ const logger = new(winston.Logger)({
     level: config.winston_log_level
 });
 
-// var mongoose = require('mongoose')
-// const Schema = mongoose.Schema;
-// mongoose.Promise = global.Promise;
-//
-// mongoose.connect(config.mongo_url);
-
 async function placeOrderACME (order) {
     logger.debug(`placeOrderACME: <-- ${JSON.stringify(order)}`);
     let orderObj = objectAssign(order);
@@ -123,25 +117,6 @@ async function placeOrderRANIER (order) {
     return orderObj
 }
 
-async function persistToMongo(order) {
-    try {
-        logger.silly(`persistToMongo: <-- ${JSON.stringify(order)}`);
-        //let orderObj = Object.assign(order);
-
-        let db = mongoose.connection;
-        db.on('error', console.error.bind(console, 'connection error:'));
-        db.once('open', async function() {
-            console.log('Mongoose connected.');
-        });
-        const OrderModel = models.Order;
-        const newOrder = new OrderModel( orderObj );
-        newOrder.save();
-    }
-    catch (err) {
-        logger.error('looks like mongo down', err)
-    }
-}
-
 async function reportOrders() {
     try {
         logger.debug(`reportOrders: <--`);
@@ -191,7 +166,7 @@ router.post('/', jsonParser, async (req, res) => {
     }
     // LOG ORDER TO MONGO
     logger.silly(`order placed submitting to mongodb --> ${JSON.stringify(placedOrder)}`)
-    let logSuccess = await persistToMongo(placedOrder);
+    let logSuccess = await order.persistOrder(placedOrder);
     res.status(200).send(placedOrder);
 })
 
