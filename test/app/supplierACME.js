@@ -49,11 +49,14 @@ after(function() {
     delete require.cache[require.resolve('mongoose')];
 });
 
-acmeserver.listen(3051, function () {
-  console.log('ACME JSON Server is running on 3051')
-})
+try {
+    acmeserver.listen(3051, function () {
+      console.log('ACME JSON Server is running on 3051')
+    })
+} catch (err) {}
 
-suite('legit supplier orders ACME should pass', function() {
+
+suite('ACME specific logic', function() {
     test('check post response ok', function() {
         return fetch('http://127.0.0.1:3000/order', {
             headers: {

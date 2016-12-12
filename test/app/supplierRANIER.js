@@ -11,13 +11,13 @@ const http = require('http');
 if (!webserver) webserver = http.createServer();
 
 let jsonServer = require('json-server')
-let server = jsonServer.create()
+let ranierserver = jsonServer.create()
 let router = jsonServer.router()
 let middlewares = jsonServer.defaults()
 
-server.use(middlewares)
-server.use(jsonServer.bodyParser)
-server.use(function (req, res, next) {
+ranierserver.use(middlewares)
+ranierserver.use(jsonServer.bodyParser)
+ranierserver.use(function (req, res, next) {
   if (req.method === 'POST') {
     req.body.createdAt = Date.now()
   }
@@ -29,7 +29,7 @@ router.render = function (req, res) {
    order: Math.floor(Math.random() * 999999)
   })
 }
-server.use(router)
+ranierserver.use(router)
 
 var Mongoose = require('mongoose').Mongoose;
 var mongoose = new Mongoose();
@@ -47,9 +47,12 @@ after(function() {
     delete require.cache[require.resolve('mongoose')];
 });
 
-server.listen(3050, function () {
-  console.log('RANIER JSON Server is running on 3050')
-});
+try {
+    ranierserver.listen(3050, function () {
+      console.log('RANIER JSON Server is running on 3050')
+    });
+} catch(err) {}
+
 
 suite('place supplier orders RANIER', function() {
     test('check post response ok', function() {

@@ -5,8 +5,6 @@ const objectAssign = require('object-assign');
 const router = new Router();
 const config = require(__dirname + '/../config/options.js');
 const winston = require('winston');
-const fetch = require('node-fetch');
-const cheerio = require('cheerio');
 
 const jsonParser = bodyParser.json()
 
@@ -16,106 +14,6 @@ const logger = new(winston.Logger)({
     })],
     level: config.winston_log_level
 });
-
-async function placeOrderACME (order) {
-    logger.debug(`placeOrderACME: <-- ${JSON.stringify(order)}`);
-    let orderObj = objectAssign(order);
-    if (orderObj.orderid) {
-        // we already processed it, bail
-        return orderObj;
-    }
-    // IF it's not an ACME car model, then bail
-    if (['anvil','wile','roadrunner'].indexOf(orderObj.model) === -1) {
-        logger.silly('not ACME car model')
-        return orderObj;
-    }
-    // IF it's not an ACME car package, then bail
-    if (['std','super','elite'].indexOf(orderObj.package) === -1) {
-        logger.silly('not ACME package')
-        orderObj.status = 'fail'
-        orderObj.reason='not a known ACME package'
-        return orderObj;
-    }
-
-    try {
-        logger.silly('it is ACME:')
-        let orderPlaced = await fetch(`http://${config.supplier_acme_url}:${config.supplier_acme_port}`, {
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            method: "POST",
-            body: `${JSON.stringify(orderObj)}`
-            })
-        .then(function(res) {
-            return res.text()
-        })
-        .then(function(body) {
-            const cheers = cheerio.load(body)
-            logger.silly(`response from ACME placeOrder page ${cheers.text()}`)
-            return cheers.text();
-        })
-        orderObj.orderid = parseInt(JSON.parse(orderPlaced).order)
-        orderObj.status = 'success';
-        orderObj.reason = ' ';
-        return orderObj;
-
-    }
-    catch (err) {
-        logger.error(err);
-        orderObj.status = 'fail'
-        orderObj.reason = `failed to place ACME order ${err}`
-        return orderObj;
-    }
-}
-
-async function placeOrderRANIER (order) {
-    logger.silly(`placeOrderRANIER: <-- ${JSON.stringify(order)}`);
-    let orderObj = objectAssign(order);
-    if (orderObj.orderid) {
-        //we already processed it.
-        return orderObj;
-    }
-    if (['pugetsound','olympic'].indexOf(orderObj.model) === -1){
-        logger.silly("model not ranier")
-        orderObj.status = 'fail';
-        return orderObj
-    }
-    if (['mtn','ltd','14k'].indexOf(orderObj.package) === -1) {
-        logger.silly('not RANIER package')
-        orderObj.status = 'fail';
-        orderObj.reason='not a known RANIER package'
-        return orderObj;
-    }
-    try {
-        logger.silly('it is RANIER:')
-        let orderPlaced = await fetch(`http://${config.supplier_ranier_url}:${config.supplier_ranier_port}`, {
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            method: "POST",
-            body: `${JSON.stringify(orderObj)}`
-            })
-        .then(function(res) {
-            return res.text()
-        })
-        .then(function(body) {
-            const cheers = cheerio.load(body)
-            logger.silly(`response from RANIER placeOrder page ${cheers.text()}`)
-            return cheers.text();
-        });
-        orderObj.orderid = parseInt(JSON.parse(orderPlaced).order)
-        orderObj.status = 'success';
-        orderObj.reason = ' ';
-        return orderObj;
-    }
-    catch (err) {
-        logger.error(err);
-        return orderObj;
-    }
-    return orderObj
-}
 
 async function reportOrders() {
     try {
@@ -142,32 +40,32 @@ router.get('/', async (req, res, next) => {
 })
 
 router.post('/', jsonParser, async (req, res) => {
-    logger.debug('order.js.post <--');
+    logger.debug(`order.js.post <-- ${req}`);
     // DON'T START NOTHING, AIN'T GONNA BE NOTHING
     if (!req.body) return res.sendStatus(400)
 
-    // CHECK IF PARAMETERS ARE GOOD
-    const order = require('../lib/order.js')
+    // CHECK IF ATTRIBUTES ARE PRESENT
+    const order = require('../lib/order.js');
     let validatedOrder = await order.validateOrder(req.body);
-    logger.silly('validatedOrder <--> ', validatedOrder);
     if (validatedOrder.status === 'invalid') {
+        logger.debug(`validate fail reason: ${validatedOrder.reason}`);
         res.status(400).send(validatedOrder.reason);
         return
     }
     // SUBMIT ORDER TO SUPPLIERS
-    let placedOrder = {};
-    placedOrder = await placeOrderACME(validatedOrder)
-    placedOrder = await placeOrderRANIER(validatedOrder)
-    logger.silly(`place order completed ${JSON.stringify(placedOrder)}`)
+    const supplier = require('../lib/supplier.js');
+    let placedOrder = await supplier.placeOrder(validatedOrder);
+    logger.silly(`order placed ${JSON.stringify(placedOrder)}`)
     if (placedOrder.status === 'fail') {
-        logger.silly(`order fail reason: ${placedOrder.reason}`)
+        logger.debug(`order fail reason: ${placedOrder.reason}`)
         res.status(400).send(placedOrder.reason || 'unknown car make/model');
         return;
     }
     // LOG ORDER TO MONGO
-    logger.silly(`order placed submitting to mongodb --> ${JSON.stringify(placedOrder)}`)
-    let logSuccess = await order.persistOrder(placedOrder);
     res.status(200).send(placedOrder);
+    let logSuccess = await order.persistOrder(placedOrder);
+    logger.debug(`order placed submitting to mongodb --> ${JSON.stringify(placedOrder)}`)
+    return;
 })
 
 export default router;
