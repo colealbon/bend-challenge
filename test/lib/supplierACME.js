@@ -17,7 +17,10 @@ acmeserver.use(function (req, res, next) {
   }
   next()
 })
-
+//acmeserver.use('/acme/api/v45.1', jsonServer.router('../fake/acme.json'))
+// for mock JWT we need two routes like so:
+// server.use('/users', jsonServer.router('comments.json')) // { "comments": [ ... ] }
+// server.use('/other-route', jsonServer.router('other-db.json'))
 router.render = function (req, res) {
   res.json({
    order: Math.floor(Math.random() * 999999)

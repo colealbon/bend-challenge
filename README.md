@@ -26,8 +26,11 @@ this is an api.  See javascript files in the test folder for example fetch opera
 * <s>persist completed order to mongo</s>
 * <s>refactor: move mongoose schema definition to models folder</s>
 * <s>refactor: move mongo helper functions to lib folder</s>
-* GET /orders orders report from mongo
-* refactor: TODO: ranier spec mandates form input params header (not json)
+* <s>GET /orders orders report from mongo</s>
+* ACME Content Type: xwwwformurlencoded
+* ACME Parameters:   api_key="cascade.53bce4f1dfa0fe8e7ca126f91b3 5d3a6"
+* RANIER GET /nonce_token   Parameters:   storefront="ccasbb9630c04f"
+* RANIER token="ff6bfd673ab6ae03d8911"
 * install JWT middleware (or document as approach to prevent external users)
 * split routes/order.js functions into library for more granular unit testing.
 * placeOrderXXX functions should't try to validate <b>and</b> submit.  refactor to separate functs.
