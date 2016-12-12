@@ -19,7 +19,7 @@ const order = require('../lib/order.js');
 // THE ENTRY POINT FOR "ORDER"
 router.get('/', async (req, res) => {
     const orders = await order.listOrders();
-    console.log(orders);
+    //console.log(orders);
     res.status(200).send({"orders": orders});
     return
 })

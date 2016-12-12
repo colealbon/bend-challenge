@@ -36,7 +36,6 @@ try {
 } catch (err) {}
 
 const supplier = require('../../lib/supplier')
-const order = require('../../lib/order')
 
 suite('RANIER place order', function() {
     test('happy path should succeed' , async function() {

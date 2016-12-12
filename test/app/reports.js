@@ -8,6 +8,7 @@ const config = require(__dirname + '/../../config/options.js');
 const order = require(__dirname + '/../../lib/order.js');
 
 // launch server that relays orders to vendors
+
 let webserver = require(__dirname + '/../../app.js');
 const http = require('http');
 if (!webserver) webserver = http.createServer();
@@ -58,7 +59,7 @@ suite('orders report', function() {
         const pausehere = newOrder.save();
         const allorders = order.listOrders();
         assert.notEqual(allorders,undefined);
-        assert.notEqual(allorders,{});
+        assert.notEqual(allorders,{}); //<-- this doesn't fail but should
         return;
     });
     test ('orders page returns something', async function() {
@@ -80,37 +81,7 @@ suite('orders report', function() {
             return res.json()
         })
         .then(function(json) {
-            console.log(JSON.stringify(json));
+            assert.notEqual(json, {})
         })
     })
-    // test('input', async function() {
-    //     const insertData = await fetch('http://127.0.0.1:3000/order', {
-    //         headers: {
-    //             'Accept': 'application/json',
-    //             'Content-Type': 'application/json'
-    //         },
-    //         method: "POST",
-    //         body: `{
-    //             "make": "ACME Autos",
-    //             "model": "roadrunner",
-    //             "package": "elite",
-    //             "customer": {
-    //                 "id": "1976",
-    //                 "shipto": "nebraska"
-    //             }}`
-    //         })
-    //     .then(function(res) {
-    //         assert.equal(res.ok, true);
-    //         return res.text()
-    //     })
-    //     .then(function(body) {
-    //         console.log(body);
-    //         const cheers = cheerio.load(body)
-    //         const cheersObj = JSON.parse(cheers.text())
-    //         assert.equal(cheersObj.status, 'success');
-    //         return cheersObj;
-    //     });
-    //     //console.log(insertData);
-
-    // });
 });
