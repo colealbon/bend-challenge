@@ -17,15 +17,14 @@ const logger = new(winston.Logger)({
     level: config.winston_log_level
 });
 
-const mongoose = require('mongoose'),
-    Schema = mongoose.Schema;
-mongoose.Promise = global.Promise;
-
-mongoose.connect(config.mongo_url);
-
+// var mongoose = require('mongoose')
+// const Schema = mongoose.Schema;
+// mongoose.Promise = global.Promise;
+//
+// mongoose.connect(config.mongo_url);
 
 async function placeOrderACME (order) {
-    logger.silly(`placeOrderACME: <-- ${JSON.stringify(order)}`);
+    logger.debug(`placeOrderACME: <-- ${JSON.stringify(order)}`);
     let orderObj = objectAssign(order);
     if (orderObj.orderid) {
         // we already processed it, bail
@@ -126,8 +125,8 @@ async function placeOrderRANIER (order) {
 
 async function persistToMongo(order) {
     try {
-        logger.debug(`persistToMongo: <-- ${JSON.stringify(order)}`);
-        let orderObj = Object.assign(order);
+        logger.silly(`persistToMongo: <-- ${JSON.stringify(order)}`);
+        //let orderObj = Object.assign(order);
 
         let db = mongoose.connection;
         db.on('error', console.error.bind(console, 'connection error:'));
@@ -167,33 +166,33 @@ router.get('/', async (req, res, next) => {
         return
 })
 
-router.post('/', jsonParser, async (req, res, next) => {
+router.post('/', jsonParser, async (req, res) => {
+    logger.debug('order.js.post <--');
     // DON'T START NOTHING, AIN'T GONNA BE NOTHING
     if (!req.body) return res.sendStatus(400)
 
     // CHECK IF PARAMETERS ARE GOOD
-    const order = require('./lib/order.js')
+    const order = require('../lib/order.js')
     let validatedOrder = await order.validateOrder(req.body);
+    logger.silly('validatedOrder <--> ', validatedOrder);
     if (validatedOrder.status === 'invalid') {
         res.status(400).send(validatedOrder.reason);
         return
     }
     // SUBMIT ORDER TO SUPPLIERS
-    let placedOrder = await JSON.parse('{"status":"fail"}')
-    placedOrder.status = 'fail'; // this will be success if we find a car.
+    let placedOrder = {};
     placedOrder = await placeOrderACME(validatedOrder)
     placedOrder = await placeOrderRANIER(validatedOrder)
     logger.silly(`place order completed ${JSON.stringify(placedOrder)}`)
     if (placedOrder.status === 'fail') {
         logger.silly(`order fail reason: ${placedOrder.reason}`)
         res.status(400).send(placedOrder.reason || 'unknown car make/model');
-        return
+        return;
     }
     // LOG ORDER TO MONGO
     logger.silly(`order placed submitting to mongodb --> ${JSON.stringify(placedOrder)}`)
     let logSuccess = await persistToMongo(placedOrder);
     res.status(200).send(placedOrder);
-    return
 })
 
 export default router;

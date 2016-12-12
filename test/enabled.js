@@ -1,6 +1,8 @@
-// require('./index.js')
-require('./validateorder.js')
+require('./app/index.js')
+
 require('./lib/order.js')
-// require('./supplierACME.js')
-// require('./supplierRANIER.js')
-// require('./reports.js')
+
+require('./app/order.js')
+require('./app/supplierACME.js')
+require('./app/supplierRANIER.js')
+//require('./app/reports.js')

@@ -11,17 +11,21 @@ const morgan = require('morgan')
 app.use(morgan('tiny'))
 
 import indexRoute from './routes/index';
-import orderRoute from './routes/order';
-
 app.use('/', indexRoute);
+
+import orderRoute from './routes/order';
 app.use('/order', orderRoute);
 
 app.use((err, req, res, next) => {
     console.error('ERROR:', err);
 });
 
-app.listen(port, function () {
-  console.log('listening on port 3000!')
-})
+try {
+    app.listen(port, function () {
+      console.log('listening on port 3000!')
+    })
+} catch (err) {
+    console.log(err);
+}
 
 module.exports = app;

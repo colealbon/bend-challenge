@@ -5,11 +5,10 @@ process.env.NODE_ENV = 'test';
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
-let server = require('../app.js');
+let server = require('../../app.js');
 const http = require('http');
 const fetch = require('node-fetch');
 if (!server) server = http.createServer();
-
 const assert = require('chai').assert;
 
 suite('index', function() {

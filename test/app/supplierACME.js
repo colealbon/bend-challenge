@@ -4,22 +4,22 @@ process.env.NODE_ENV = 'test';
 const fetch = require('node-fetch');
 const assert = require('chai').assert;
 const cheerio = require('cheerio');
-const config = require(__dirname + '/../config/options.js');
+const config = require(__dirname + '/../../config/options.js');
 
 // launch server that relays orders to vendors
-let webserver = require('../app.js');
+let webserver = require(__dirname + '/../../app.js');
 const http = require('http');
 if (!webserver) webserver = http.createServer();
 
 // launch server that sends fake order confirmations
 let jsonServer = require('json-server')
-let server = jsonServer.create()
+let acmeserver = jsonServer.create()
 let router = jsonServer.router()
 let middlewares = jsonServer.defaults()
 
-server.use(middlewares)
-server.use(jsonServer.bodyParser)
-server.use(function (req, res, next) {
+acmeserver.use(middlewares)
+acmeserver.use(jsonServer.bodyParser)
+acmeserver.use(function (req, res, next) {
   if (req.method === 'POST') {
     req.body.createdAt = Date.now()
   }
@@ -31,7 +31,7 @@ router.render = function (req, res) {
    order: Math.floor(Math.random() * 999999)
   })
 }
-server.use(router)
+acmeserver.use(router)
 
 var Mongoose = require('mongoose').Mongoose;
 var mongoose = new Mongoose();
@@ -49,7 +49,7 @@ after(function() {
     delete require.cache[require.resolve('mongoose')];
 });
 
-server.listen(3051, function () {
+acmeserver.listen(3051, function () {
   console.log('ACME JSON Server is running on 3051')
 })
 
@@ -78,7 +78,6 @@ suite('legit supplier orders ACME should pass', function() {
             const cheers = cheerio.load(body)
             const cheersObj = JSON.parse(cheers.text())
             assert.equal(cheersObj.status, 'success');
-
         })
     });
     test('should error if bad model', function() {
@@ -100,6 +99,9 @@ suite('legit supplier orders ACME should pass', function() {
         .then(function(res) {
             assert.notEqual(res.ok, true);
             return res.text()
+        })
+        .then(function(body) {
+            assert.equal(body, 'unknown car make/model');
         })
     });
     test('should error if bad package', function() {

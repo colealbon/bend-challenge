@@ -1,11 +1,15 @@
 'use strict';
 /*eslint-env node, mocha, es6 */
 process.env.NODE_ENV = 'test';
-const fetch = require('node-fetch');
-const assert = require('chai').assert;
-const cheerio = require('cheerio');
 
-suite('validate order - webapi', function() {
+let server = require('../../app.js');
+const http = require('http');
+const fetch = require('node-fetch');
+if (!server) server = http.createServer();
+const assert = require('chai').assert;
+
+
+suite('validate order - (via webapi)', function() {
     test('missing make parameter should cause error', function() {
         return fetch('http://127.0.0.1:3000/order', {
             headers: {

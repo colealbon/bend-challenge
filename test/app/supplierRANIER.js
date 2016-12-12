@@ -4,9 +4,9 @@ process.env.NODE_ENV = 'test';
 const fetch = require('node-fetch');
 const assert = require('chai').assert;
 const cheerio = require('cheerio');
-const config = require(__dirname + '/../config/options.js');
+const config = require(__dirname + '/../../config/options.js');
 
-let webserver = require('../app.js');
+let webserver = require('../../app.js');
 const http = require('http');
 if (!webserver) webserver = http.createServer();
 
